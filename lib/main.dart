@@ -1,0 +1,294 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(const HabitosDeRiquezaApp());
+}
+
+class HabitosDeRiquezaApp extends StatelessWidget {
+  const HabitosDeRiquezaApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Hábitos de Riqueza',
+      theme: ThemeData(
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: const Color(0xFF0B1020),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF00C9A7),
+          brightness: Brightness.dark,
+        ),
+        useMaterial3: true,
+      ),
+      home: const InicioPage(),
+    );
+  }
+}
+
+class InicioPage extends StatelessWidget {
+  const InicioPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Hábitos de Riqueza 💰',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 20),
+
+              const Text(
+                'Construye tu riqueza,\nun hábito a la vez.',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  height: 1.15,
+                ),
+              ),
+
+              const SizedBox(height: 14),
+
+              Text(
+                'No se trata de ganar más solamente. '
+                'Se trata de aprender a administrar mejor lo que ya tienes.',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey.shade400,
+                  height: 1.5,
+                ),
+              ),
+
+              const SizedBox(height: 30),
+
+              _tarjetaPrincipal(),
+
+              const SizedBox(height: 25),
+
+              const Text(
+                'Tus hábitos de hoy',
+                style: TextStyle(
+                  fontSize: 21,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 15),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: _tarjetaEstadistica(
+                      icono: Icons.savings_outlined,
+                      titulo: 'Ahorro',
+                      valor: '\$0',
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _tarjetaEstadistica(
+                      icono: Icons.track_changes,
+                      titulo: 'Metas',
+                      valor: '0',
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 25),
+
+              const Text(
+                'Principios de riqueza',
+                style: TextStyle(
+                  fontSize: 21,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 15),
+
+              _principio(
+                Icons.psychology_outlined,
+                'Mentalidad',
+                'Piensa a largo plazo y toma decisiones conscientes con tu dinero.',
+              ),
+
+              _principio(
+                Icons.savings_outlined,
+                'Ahorro',
+                'Haz del ahorro un hábito antes de convertirlo en una obligación.',
+              ),
+
+              _principio(
+                Icons.trending_up,
+                'Crecimiento',
+                'Pequeñas mejoras constantes pueden convertirse en grandes resultados.',
+              ),
+
+              const SizedBox(height: 30),
+
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: () {},
+                  icon: const Icon(Icons.arrow_forward),
+                  label: const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 14),
+                    child: Text(
+                      'Comenzar mi camino',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _tarjetaPrincipal() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [
+            Color(0xFF00C9A7),
+            Color(0xFF087F8C),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.auto_awesome,
+            size: 35,
+            color: Colors.white,
+          ),
+          SizedBox(height: 18),
+          Text(
+            'Tu riqueza comienza con una decisión.',
+            style: TextStyle(
+              fontSize: 23,
+              fontWeight: FontWeight.bold,
+              height: 1.2,
+            ),
+          ),
+          SizedBox(height: 10),
+          Text(
+            'Organiza tu dinero, crea hábitos y trabaja por tus metas.',
+            style: TextStyle(
+              fontSize: 15,
+              height: 1.4,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _tarjetaEstadistica({
+    required IconData icono,
+    required String titulo,
+    required String valor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: const Color(0xFF151C31),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.08),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            icono,
+            color: const Color(0xFF00C9A7),
+            size: 28,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            titulo,
+            style: TextStyle(
+              color: Colors.grey.shade400,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            valor,
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _principio(
+    IconData icono,
+    String titulo,
+    String descripcion,
+  ) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(17),
+      decoration: BoxDecoration(
+        color: const Color(0xFF151C31),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            icono,
+            color: const Color(0xFF00C9A7),
+            size: 30,
+          ),
+          const SizedBox(width: 15),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  titulo,
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  descripcion,
+                  style: TextStyle(
+                    color: Colors.grey.shade400,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
