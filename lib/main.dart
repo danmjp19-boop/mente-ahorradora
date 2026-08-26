@@ -363,9 +363,10 @@ class CaminoPage extends StatelessWidget {
         ),
       ),
     );
-  }
+  }    
+}
 
-  class DineroPage extends StatefulWidget {
+class DineroPage extends StatefulWidget {
   const DineroPage({super.key});
 
   @override
