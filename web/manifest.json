@@ -1,0 +1,10 @@
+{
+  "name": "Hábitos de Riqueza",
+  "short_name": "Hábitos de Riqueza",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0B1020",
+  "theme_color": "#00C9A7",
+  "description": "Construye mejores hábitos financieros y desarrolla una mentalidad de riqueza.",
+  "orientation": "portrait-primary"
+}
