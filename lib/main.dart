@@ -365,13 +365,317 @@ class CaminoPage extends StatelessWidget {
     );
   }
 
-  Widget _opcion(
-    BuildContext context,
-    IconData icono,
+  class DineroPage extends StatefulWidget {
+  const DineroPage({super.key});
+
+  @override
+  State<DineroPage> createState() => _DineroPageState();
+}
+
+class _DineroPageState extends State<DineroPage> {
+  double ingresos = 0;
+  double gastos = 0;
+
+  final TextEditingController _montoController =
+      TextEditingController();
+
+  void _agregarIngreso() {
+    final monto = double.tryParse(_montoController.text);
+
+    if (monto == null || monto <= 0) {
+      _mensaje('Escribe un monto válido.');
+      return;
+    }
+
+    setState(() {
+      ingresos += monto;
+    });
+
+    _montoController.clear();
+    _mensaje('Ingreso agregado correctamente.');
+  }
+
+  void _agregarGasto() {
+    final monto = double.tryParse(_montoController.text);
+
+    if (monto == null || monto <= 0) {
+      _mensaje('Escribe un monto válido.');
+      return;
+    }
+
+    setState(() {
+      gastos += monto;
+    });
+
+    _montoController.clear();
+    _mensaje('Gasto agregado correctamente.');
+  }
+
+  void _mensaje(String texto) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(texto)),
+    );
+  }
+
+  @override
+  void dispose() {
+    _montoController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final double saldo = ingresos - gastos;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Mi dinero',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Organiza tu dinero 💰',
+                style: TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              Text(
+                'Registra lo que recibes y lo que gastas para saber exactamente cómo están tus finanzas.',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey.shade400,
+                  height: 1.5,
+                ),
+              ),
+
+              const SizedBox(height: 25),
+
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(22),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color(0xFF00C9A7),
+                      Color(0xFF087F8C),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(22),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Saldo disponible',
+                      style: TextStyle(
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '\$${saldo.toStringAsFixed(0)}',
+                      style: const TextStyle(
+                        fontSize: 36,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: _estadistica(
+                      'Ingresos',
+                      ingresos,
+                      Icons.arrow_downward,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _estadistica(
+                      'Gastos',
+                      gastos,
+                      Icons.arrow_upward,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 30),
+
+              const Text(
+                'Registrar movimiento',
+                style: TextStyle(
+                  fontSize: 21,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 15),
+
+              TextField(
+                controller: _montoController,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                decoration: InputDecoration(
+                  labelText: 'Monto',
+                  hintText: 'Ejemplo: 50000',
+                  prefixText: '\$ ',
+                  filled: true,
+                  fillColor: const Color(0xFF151C31),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 15),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: _agregarIngreso,
+                      icon: const Icon(Icons.add),
+                      label: const Text('Ingreso'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: _agregarGasto,
+                      icon: const Icon(Icons.remove),
+                      label: const Text('Gasto'),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 30),
+
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF151C31),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(
+                      Icons.lightbulb_outline,
+                      color: Color(0xFF00C9A7),
+                      size: 30,
+                    ),
+                    SizedBox(width: 15),
+                    Expanded(
+                      child: Text(
+                        'Consejo: registra tus movimientos diariamente para conocer mejor tus hábitos financieros.',
+                        style: TextStyle(
+                          fontSize: 15,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _estadistica(
     String titulo,
-    String descripcion,
+    double valor,
+    IconData icono,
   ) {
     return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF151C31),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            icono,
+            color: const Color(0xFF00C9A7),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            titulo,
+            style: TextStyle(
+              color: Colors.grey.shade400,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '\$${valor.toStringAsFixed(0)}',
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+  Widget _opcion(
+  BuildContext context,
+  IconData icono,
+  String titulo,
+  String descripcion,
+) {
+  return InkWell(
+    borderRadius: BorderRadius.circular(18),
+    onTap: () {
+      if (titulo == 'Organizar mi dinero') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const DineroPage(),
+          ),
+        );
+      } else if (titulo == 'Crear mi primer hábito') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const HabitoPage(),
+          ),
+        );
+      } else if (titulo == 'Crear una meta') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const MetaPage(),
+          ),
+        );
+      }
+    },
+    child: Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 15),
       padding: const EdgeInsets.all(18),
@@ -414,6 +718,6 @@ class CaminoPage extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
 }
