@@ -298,3 +298,122 @@ class InicioPage extends StatelessWidget {
     );
   }
 }
+class CaminoPage extends StatelessWidget {
+  const CaminoPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Mi camino',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Comienza tu camino 💰',
+                style: TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              Text(
+                'Vamos a construir tus hábitos financieros paso a paso.',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey,
+                  height: 1.5,
+                ),
+              ),
+
+              const SizedBox(height: 30),
+
+              _opcion(
+                context,
+                Icons.account_balance_wallet_outlined,
+                'Organizar mi dinero',
+                'Conoce cuánto tienes y cómo estás utilizando tu dinero.',
+              ),
+
+              _opcion(
+                context,
+                Icons.savings_outlined,
+                'Crear mi primer hábito',
+                'Empieza con un hábito sencillo de ahorro.',
+              ),
+
+              _opcion(
+                context,
+                Icons.flag_outlined,
+                'Crear una meta',
+                'Define algo que quieras conseguir y cuánto necesitas.',
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _opcion(
+    BuildContext context,
+    IconData icono,
+    String titulo,
+    String descripcion,
+  ) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 15),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: const Color(0xFF151C31),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.08),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            icono,
+            color: const Color(0xFF00C9A7),
+            size: 32,
+          ),
+          const SizedBox(width: 15),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  titulo,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  descripcion,
+                  style: TextStyle(
+                    color: Colors.grey.shade400,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
