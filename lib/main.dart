@@ -143,7 +143,7 @@ class InicioPage extends StatelessWidget {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const CaminoPage(),
+          builder: (context) => CaminoPage(),
         ),
       );
     },
