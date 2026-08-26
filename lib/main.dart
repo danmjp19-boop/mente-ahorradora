@@ -664,14 +664,14 @@ class _DineroPageState extends State<DineroPage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const HabitoPage(),
+            builder: (context) => const CaminoPage(),
           ),
         );
       } else if (titulo == 'Crear una meta') {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const MetaPage(),
+            builder: (context) => const CaminoPage(),
           ),
         );
       }
