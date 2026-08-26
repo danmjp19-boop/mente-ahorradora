@@ -137,20 +137,26 @@ class InicioPage extends StatelessWidget {
               const SizedBox(height: 30),
 
               SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.arrow_forward),
-                  label: const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 14),
-                    child: Text(
-                      'Comenzar mi camino',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ),
-                ),
-              ),
-
+  width: double.infinity,
+  child: FilledButton.icon(
+    onPressed: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const CaminoPage(),
+        ),
+      );
+    },
+    icon: const Icon(Icons.arrow_forward),
+    label: const Padding(
+      padding: EdgeInsets.symmetric(vertical: 14),
+      child: Text(
+        'Comenzar mi camino',
+        style: TextStyle(fontSize: 16),
+      ),
+    ),
+  ),
+),
               const SizedBox(height: 20),
             ],
           ),
