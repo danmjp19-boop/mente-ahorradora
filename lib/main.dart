@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const HabitosDeRiquezaApp());
@@ -380,8 +381,32 @@ class _DineroPageState extends State<DineroPage> {
   final TextEditingController _montoController =
       TextEditingController();
 
-  void _agregarIngreso() {
-    final monto = double.tryParse(_montoController.text);
+  @override
+  void initState() {
+    super.initState();
+    _cargarDatos();
+  }
+
+  Future<void> _cargarDatos() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      ingresos = prefs.getDouble('ingresos') ?? 0;
+      gastos = prefs.getDouble('gastos') ?? 0;
+    });
+  }
+
+  Future<void> _guardarDatos() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    await prefs.setDouble('ingresos', ingresos);
+    await prefs.setDouble('gastos', gastos);
+  }
+
+  void _agregarIngreso() async {
+    final monto = double.tryParse(
+      _montoController.text.replaceAll(',', '.'),
+    );
 
     if (monto == null || monto <= 0) {
       _mensaje('Escribe un monto válido.');
@@ -392,12 +417,16 @@ class _DineroPageState extends State<DineroPage> {
       ingresos += monto;
     });
 
+    await _guardarDatos();
+
     _montoController.clear();
-    _mensaje('Ingreso agregado correctamente.');
+    _mensaje('Ingreso guardado correctamente.');
   }
 
-  void _agregarGasto() {
-    final monto = double.tryParse(_montoController.text);
+  void _agregarGasto() async {
+    final monto = double.tryParse(
+      _montoController.text.replaceAll(',', '.'),
+    );
 
     if (monto == null || monto <= 0) {
       _mensaje('Escribe un monto válido.');
@@ -408,8 +437,10 @@ class _DineroPageState extends State<DineroPage> {
       gastos += monto;
     });
 
+    await _guardarDatos();
+
     _montoController.clear();
-    _mensaje('Gasto agregado correctamente.');
+    _mensaje('Gasto guardado correctamente.');
   }
 
   void _mensaje(String texto) {
@@ -496,149 +527,166 @@ class _DineroPageState extends State<DineroPage> {
                 ),
               ),
 
+              const SizedBox(height: 25),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(22),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF151C31),
+                        borderRadius: BorderRadius.circular(22),
+                      ),
+                      child: Column(
+                        crossAxisAlignment:
+                            CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            Icons.arrow_downward,
+                            color: Color(0xFF00C9A7),
+                            size: 36,
+                          ),
+                          const SizedBox(height: 15),
+                          const Text(
+                            'Ingresos',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            '\$${ingresos.toStringAsFixed(0)}',
+                            style: const TextStyle(
+                              fontSize: 25,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(width: 20),
+
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(22),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF151C31),
+                        borderRadius: BorderRadius.circular(22),
+                      ),
+                      child: Column(
+                        crossAxisAlignment:
+                            CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            Icons.arrow_upward,
+                            color: Color(0xFF00C9A7),
+                            size: 36,
+                          ),
+                          const SizedBox(height: 15),
+                          const Text(
+                            'Gastos',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            '\$${gastos.toStringAsFixed(0)}',
+                            style: const TextStyle(
+                              fontSize: 25,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 35),
+
+              const Text(
+                'Registrar movimiento',
+                style: TextStyle(
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              TextField(
+                controller: _montoController,
+                keyboardType:
+                    const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                decoration: InputDecoration(
+                  hintText: 'Monto',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(22),
+                  ),
+                ),
+              ),
+
               const SizedBox(height: 20),
 
               Row(
                 children: [
                   Expanded(
-                    child: _estadistica(
-                      'Ingresos',
-                      ingresos,
-                      Icons.arrow_downward,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _estadistica(
-                      'Gastos',
-                      gastos,
-                      Icons.arrow_upward,
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 30),
-
-              const Text(
-                'Registrar movimiento',
-                style: TextStyle(
-                  fontSize: 21,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-
-              const SizedBox(height: 15),
-
-              TextField(
-                controller: _montoController,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                decoration: InputDecoration(
-                  labelText: 'Monto',
-                  hintText: 'Ejemplo: 50000',
-                  prefixText: '\$ ',
-                  filled: true,
-                  fillColor: const Color(0xFF151C31),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 15),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: FilledButton.icon(
+                    child: ElevatedButton(
                       onPressed: _agregarIngreso,
-                      icon: const Icon(Icons.add),
-                      label: const Text('Ingreso'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: FilledButton.icon(
-                      onPressed: _agregarGasto,
-                      icon: const Icon(Icons.remove),
-                      label: const Text('Gasto'),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 30),
-
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF151C31),
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(
-                      Icons.lightbulb_outline,
-                      color: Color(0xFF00C9A7),
-                      size: 30,
-                    ),
-                    SizedBox(width: 15),
-                    Expanded(
-                      child: Text(
-                        'Consejo: registra tus movimientos diariamente para conocer mejor tus hábitos financieros.',
-                        style: TextStyle(
-                          fontSize: 15,
-                          height: 1.4,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            const Color(0xFF82D4C3),
+                        foregroundColor:
+                            const Color(0xFF073B35),
+                        padding:
+                            const EdgeInsets.symmetric(
+                          vertical: 18,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(30),
                         ),
                       ),
+                      child: const Text(
+                        '+  Ingreso',
+                        style: TextStyle(fontSize: 18),
+                      ),
                     ),
-                  ],
-                ),
+                  ),
+
+                  const SizedBox(width: 20),
+
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _agregarGasto,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            const Color(0xFF82D4C3),
+                        foregroundColor:
+                            const Color(0xFF073B35),
+                        padding:
+                            const EdgeInsets.symmetric(
+                          vertical: 18,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(30),
+                        ),
+                      ),
+                      child: const Text(
+                        '−  Gasto',
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _estadistica(
-    String titulo,
-    double valor,
-    IconData icono,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF151C31),
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            icono,
-            color: const Color(0xFF00C9A7),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            titulo,
-            style: TextStyle(
-              color: Colors.grey.shade400,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '\$${valor.toStringAsFixed(0)}',
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
       ),
     );
   }
