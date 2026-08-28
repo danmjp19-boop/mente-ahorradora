@@ -375,11 +375,29 @@ class DineroPage extends StatefulWidget {
 }
 
 class _DineroPageState extends State<DineroPage> {
-  double ingresos = 0;
-  double gastos = 0;
+  List<Map<String, dynamic>> ingresos = [];
+  List<Map<String, dynamic>> gastos = [];
 
-  final TextEditingController _montoController =
-      TextEditingController();
+  final List<String> ingresosBase = [
+    'Sueldo',
+    'Honorarios',
+    'Negocio',
+    'Otros ingresos',
+  ];
+
+  final List<String> gastosBase = [
+    'Arriendo',
+    'Transporte',
+    'Alimentación',
+    'Servicios',
+    'Mercado',
+    'Gasolina',
+    'Salud',
+    'Educación',
+    'Deudas',
+    'Entretenimiento',
+    'Otros gastos',
+  ];
 
   @override
   void initState() {
@@ -390,80 +408,175 @@ class _DineroPageState extends State<DineroPage> {
   Future<void> _cargarDatos() async {
     final prefs = await SharedPreferences.getInstance();
 
+    final ingresosGuardados =
+        prefs.getStringList('lista_ingresos') ?? [];
+
+    final gastosGuardados =
+        prefs.getStringList('lista_gastos') ?? [];
+
     setState(() {
-      ingresos = prefs.getDouble('ingresos') ?? 0;
-      gastos = prefs.getDouble('gastos') ?? 0;
+      ingresos = ingresosGuardados.map((item) {
+        final partes = item.split('|');
+
+        return {
+          'nombre': partes[0],
+          'valor': double.tryParse(partes[1]) ?? 0,
+        };
+      }).toList();
+
+      gastos = gastosGuardados.map((item) {
+        final partes = item.split('|');
+
+        return {
+          'nombre': partes[0],
+          'valor': double.tryParse(partes[1]) ?? 0,
+        };
+      }).toList();
     });
   }
 
   Future<void> _guardarDatos() async {
     final prefs = await SharedPreferences.getInstance();
 
-    await prefs.setDouble('ingresos', ingresos);
-    await prefs.setDouble('gastos', gastos);
-  }
-
-  void _agregarIngreso() async {
-    final monto = double.tryParse(
-      _montoController.text.replaceAll(',', '.'),
+    await prefs.setStringList(
+      'lista_ingresos',
+      ingresos
+          .map((item) => '${item['nombre']}|${item['valor']}')
+          .toList(),
     );
 
-    if (monto == null || monto <= 0) {
-      _mensaje('Escribe un monto válido.');
-      return;
-    }
+    await prefs.setStringList(
+      'lista_gastos',
+      gastos
+          .map((item) => '${item['nombre']}|${item['valor']}')
+          .toList(),
+    );
+  }
 
+  double _total(List<Map<String, dynamic>> lista) {
+    return lista.fold(
+      0,
+      (total, item) => total + (item['valor'] as double),
+    );
+  }
+
+  void _mostrarFormulario({
+    required bool esIngreso,
+    String? nombreInicial,
+  }) {
+    final nombreController =
+        TextEditingController(text: nombreInicial ?? '');
+
+    final valorController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(
+            esIngreso ? 'Nuevo ingreso' : 'Nuevo gasto',
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nombreController,
+                decoration: const InputDecoration(
+                  labelText: 'Nombre',
+                  hintText: 'Ej: Sueldo',
+                ),
+              ),
+              const SizedBox(height: 15),
+              TextField(
+                controller: valorController,
+                keyboardType:
+                    const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                decoration: const InputDecoration(
+                  labelText: 'Valor',
+                  prefixText: '\$ ',
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                final nombre =
+                    nombreController.text.trim();
+
+                final valor = double.tryParse(
+                  valorController.text
+                      .replaceAll('.', '')
+                      .replaceAll(',', '.'),
+                );
+
+                if (nombre.isEmpty ||
+                    valor == null ||
+                    valor <= 0) {
+                  return;
+                }
+
+                setState(() {
+                  final nuevo = {
+                    'nombre': nombre,
+                    'valor': valor,
+                  };
+
+                  if (esIngreso) {
+                    ingresos.add(nuevo);
+                  } else {
+                    gastos.add(nuevo);
+                  }
+                });
+
+                await _guardarDatos();
+
+                if (context.mounted) {
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text('Guardar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _eliminar({
+    required bool esIngreso,
+    required int indice,
+  }) async {
     setState(() {
-      ingresos += monto;
+      if (esIngreso) {
+        ingresos.removeAt(indice);
+      } else {
+        gastos.removeAt(indice);
+      }
     });
 
     await _guardarDatos();
-
-    _montoController.clear();
-    _mensaje('Ingreso guardado correctamente.');
-  }
-
-  void _agregarGasto() async {
-    final monto = double.tryParse(
-      _montoController.text.replaceAll(',', '.'),
-    );
-
-    if (monto == null || monto <= 0) {
-      _mensaje('Escribe un monto válido.');
-      return;
-    }
-
-    setState(() {
-      gastos += monto;
-    });
-
-    await _guardarDatos();
-
-    _montoController.clear();
-    _mensaje('Gasto guardado correctamente.');
-  }
-
-  void _mensaje(String texto) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(texto)),
-    );
-  }
-
-  @override
-  void dispose() {
-    _montoController.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final double saldo = ingresos - gastos;
+    final totalIngresos = _total(ingresos);
+    final totalGastos = _total(gastos);
+    final disponible = totalIngresos - totalGastos;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text(
           'Mi dinero',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
         ),
         centerTitle: true,
       ),
@@ -471,24 +584,24 @@ class _DineroPageState extends State<DineroPage> {
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment:
+                CrossAxisAlignment.start,
             children: [
               const Text(
-                'Organiza tu dinero 💰',
+                'Mi dinero 💰',
                 style: TextStyle(
                   fontSize: 30,
                   fontWeight: FontWeight.bold,
                 ),
               ),
 
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
 
               Text(
-                'Registra lo que recibes y lo que gastas para saber exactamente cómo están tus finanzas.',
+                'Organiza tus ingresos y gastos de forma sencilla.',
                 style: TextStyle(
-                  fontSize: 16,
                   color: Colors.grey.shade400,
-                  height: 1.5,
+                  fontSize: 16,
                 ),
               ),
 
@@ -504,22 +617,22 @@ class _DineroPageState extends State<DineroPage> {
                       Color(0xFF087F8C),
                     ],
                   ),
-                  borderRadius: BorderRadius.circular(22),
+                  borderRadius:
+                      BorderRadius.circular(22),
                 ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Saldo disponible',
-                      style: TextStyle(
-                        fontSize: 16,
-                      ),
+                      'Dinero disponible',
+                      style: TextStyle(fontSize: 16),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '\$${saldo.toStringAsFixed(0)}',
+                      '\$${disponible.toStringAsFixed(0)}',
                       style: const TextStyle(
-                        fontSize: 36,
+                        fontSize: 34,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -532,161 +645,241 @@ class _DineroPageState extends State<DineroPage> {
               Row(
                 children: [
                   Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(22),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF151C31),
-                        borderRadius: BorderRadius.circular(22),
-                      ),
-                      child: Column(
-                        crossAxisAlignment:
-                            CrossAxisAlignment.start,
-                        children: [
-                          const Icon(
-                            Icons.arrow_downward,
-                            color: Color(0xFF00C9A7),
-                            size: 36,
-                          ),
-                          const SizedBox(height: 15),
-                          const Text(
-                            'Ingresos',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            '\$${ingresos.toStringAsFixed(0)}',
-                            style: const TextStyle(
-                              fontSize: 25,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
+                    child: _resumen(
+                      'Ingresos',
+                      totalIngresos,
+                      Icons.arrow_downward,
                     ),
                   ),
-
-                  const SizedBox(width: 20),
-
+                  const SizedBox(width: 12),
                   Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(22),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF151C31),
-                        borderRadius: BorderRadius.circular(22),
-                      ),
-                      child: Column(
-                        crossAxisAlignment:
-                            CrossAxisAlignment.start,
-                        children: [
-                          const Icon(
-                            Icons.arrow_upward,
-                            color: Color(0xFF00C9A7),
-                            size: 36,
-                          ),
-                          const SizedBox(height: 15),
-                          const Text(
-                            'Gastos',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            '\$${gastos.toStringAsFixed(0)}',
-                            style: const TextStyle(
-                              fontSize: 25,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
+                    child: _resumen(
+                      'Gastos',
+                      totalGastos,
+                      Icons.arrow_upward,
                     ),
                   ),
                 ],
               ),
 
-              const SizedBox(height: 35),
+              const SizedBox(height: 30),
 
-              const Text(
-                'Registrar movimiento',
-                style: TextStyle(
-                  fontSize: 25,
-                  fontWeight: FontWeight.bold,
-                ),
+              _tituloSeccion(
+                'Ingresos',
+                Icons.account_balance_wallet_outlined,
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
 
-              TextField(
-                controller: _montoController,
-                keyboardType:
-                    const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                decoration: InputDecoration(
-                  hintText: 'Monto',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(22),
-                  ),
-                ),
+              _listaMovimientos(
+                lista: ingresos,
+                esIngreso: true,
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 15),
 
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _agregarIngreso,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            const Color(0xFF82D4C3),
-                        foregroundColor:
-                            const Color(0xFF073B35),
-                        padding:
-                            const EdgeInsets.symmetric(
-                          vertical: 18,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(30),
-                        ),
-                      ),
-                      child: const Text(
-                        '+  Ingreso',
-                        style: TextStyle(fontSize: 18),
-                      ),
-                    ),
+              OutlinedButton.icon(
+                onPressed: () {
+                  _mostrarFormulario(
+                    esIngreso: true,
+                  );
+                },
+                icon: const Icon(Icons.add),
+                label: const Text('Crear ingreso'),
+              ),
+
+              const SizedBox(height: 30),
+
+              _tituloSeccion(
+                'Gastos',
+                Icons.money_off,
+              ),
+
+              const SizedBox(height: 12),
+
+              _listaMovimientos(
+                lista: gastos,
+                esIngreso: false,
+              ),
+
+              const SizedBox(height: 15),
+
+              OutlinedButton.icon(
+                onPressed: () {
+                  _mostrarFormulario(
+                    esIngreso: false,
+                  );
+                },
+                icon: const Icon(Icons.add),
+                label: const Text('Crear gasto'),
+              ),
+
+              const SizedBox(height: 30),
+
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF151C31),
+                  borderRadius:
+                      BorderRadius.circular(18),
+                ),
+                child: const Text(
+                  '💡 Consejo: primero registra tus ingresos y después agrega tus gastos. Así podrás saber cuánto dinero realmente tienes disponible.',
+                  style: TextStyle(
+                    fontSize: 15,
+                    height: 1.5,
                   ),
-
-                  const SizedBox(width: 20),
-
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _agregarGasto,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            const Color(0xFF82D4C3),
-                        foregroundColor:
-                            const Color(0xFF073B35),
-                        padding:
-                            const EdgeInsets.symmetric(
-                          vertical: 18,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(30),
-                        ),
-                      ),
-                      child: const Text(
-                        '−  Gasto',
-                        style: TextStyle(fontSize: 18),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _resumen(
+    String titulo,
+    double valor,
+    IconData icono,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF151C31),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
+        children: [
+          Icon(
+            icono,
+            color: const Color(0xFF00C9A7),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            titulo,
+            style: TextStyle(
+              color: Colors.grey.shade400,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '\$${valor.toStringAsFixed(0)}',
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _tituloSeccion(
+    String titulo,
+    IconData icono,
+  ) {
+    return Row(
+      children: [
+        Icon(
+          icono,
+          color: const Color(0xFF00C9A7),
+        ),
+        const SizedBox(width: 10),
+        Text(
+          titulo,
+          style: const TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _listaMovimientos({
+    required List<Map<String, dynamic>> lista,
+    required bool esIngreso,
+  }) {
+    if (lista.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: const Color(0xFF151C31),
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Text(
+          esIngreso
+              ? 'Todavía no tienes ingresos registrados.'
+              : 'Todavía no tienes gastos registrados.',
+          style: TextStyle(
+            color: Colors.grey.shade400,
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: List.generate(
+        lista.length,
+        (indice) {
+          final item = lista[indice];
+
+          return Container(
+            margin: const EdgeInsets.only(
+              bottom: 10,
+            ),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF151C31),
+              borderRadius:
+                  BorderRadius.circular(18),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  esIngreso
+                      ? Icons.add_circle_outline
+                      : Icons.remove_circle_outline,
+                  color: const Color(0xFF00C9A7),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    item['nombre'],
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Text(
+                  '\$${(item['valor'] as double).toStringAsFixed(0)}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                IconButton(
+                  onPressed: () {
+                    _eliminar(
+                      esIngreso: esIngreso,
+                      indice: indice,
+                    );
+                  },
+                  icon: const Icon(
+                    Icons.delete_outline,
+                    size: 20,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
