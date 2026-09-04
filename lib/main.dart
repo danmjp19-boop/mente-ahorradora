@@ -800,89 +800,259 @@ class _DineroPageState extends State<DineroPage> {
     );
   }
 
-  Widget _listaMovimientos({
-    required List<Map<String, dynamic>> lista,
-    required bool esIngreso,
-  }) {
-    if (lista.isEmpty) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: const Color(0xFF151C31),
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Text(
-          esIngreso
-              ? 'Todavía no tienes ingresos registrados.'
-              : 'Todavía no tienes gastos registrados.',
-          style: TextStyle(
-            color: Colors.grey.shade400,
-          ),
-        ),
-      );
-    }
+ Future<void> _mostrarAlerta({
+  required int indice,
+}) async {
+  final gasto = gastos[indice];
 
-    return Column(
-      children: List.generate(
-        lista.length,
-        (indice) {
-          final item = lista[indice];
+  final fecha = await showDatePicker(
+    context: context,
+    initialDate: DateTime.now(),
+    firstDate: DateTime.now(),
+    lastDate: DateTime(2100),
+  );
 
-          return Container(
-            margin: const EdgeInsets.only(
-              bottom: 10,
-            ),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFF151C31),
-              borderRadius:
-                  BorderRadius.circular(18),
-            ),
-            child: Row(
+  if (fecha == null) return;
+
+  if (!mounted) return;
+
+  final hora = await showTimePicker(
+    context: context,
+    initialTime: TimeOfDay.now(),
+  );
+
+  if (hora == null) return;
+
+  if (!mounted) return;
+
+  int diasAntes = 0;
+
+  await showDialog(
+    context: context,
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            title: const Text('🔔 Alerta del gasto'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  esIngreso
-                      ? Icons.add_circle_outline
-                      : Icons.remove_circle_outline,
-                  color: const Color(0xFF00C9A7),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    item['nombre'],
-                    style: const TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
                 Text(
-                  '\$${(item['valor'] as double).toStringAsFixed(0)}',
+                  gasto['nombre'],
                   style: const TextStyle(
-                    fontSize: 16,
                     fontWeight: FontWeight.bold,
+                    fontSize: 18,
                   ),
                 ),
-                IconButton(
-                  onPressed: () {
-                    _eliminar(
-                      esIngreso: esIngreso,
-                      indice: indice,
-                    );
-                  },
-                  icon: const Icon(
-                    Icons.delete_outline,
-                    size: 20,
+
+                const SizedBox(height: 15),
+
+                Text(
+                  'Aviso: ${fecha.day}/${fecha.month}/${fecha.year} '
+                  'a las ${hora.format(context)}',
+                ),
+
+                const SizedBox(height: 20),
+
+                DropdownButtonFormField<int>(
+                  value: diasAntes,
+                  decoration: const InputDecoration(
+                    labelText: 'Avisar con anticipación',
+                    border: OutlineInputBorder(),
                   ),
+                  items: const [
+                    DropdownMenuItem(
+                      value: 0,
+                      child: Text('El mismo día'),
+                    ),
+                    DropdownMenuItem(
+                      value: 1,
+                      child: Text('1 día antes'),
+                    ),
+                    DropdownMenuItem(
+                      value: 3,
+                      child: Text('3 días antes'),
+                    ),
+                    DropdownMenuItem(
+                      value: 7,
+                      child: Text('7 días antes'),
+                    ),
+                  ],
+                  onChanged: (valor) {
+                    if (valor != null) {
+                      setDialogState(() {
+                        diasAntes = valor;
+                      });
+                    }
+                  },
                 ),
               ],
             ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text('Cancelar'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text('Guardar alerta'),
+              ),
+            ],
           );
         },
+      );
+    },
+  );
+
+  if (!mounted) return;
+
+  setState(() {
+    gasto['alertaFecha'] =
+        '${fecha.year}-${fecha.month.toString().padLeft(2, '0')}-${fecha.day.toString().padLeft(2, '0')}';
+
+    gasto['alertaHora'] =
+        '${hora.hour.toString().padLeft(2, '0')}:${hora.minute.toString().padLeft(2, '0')}';
+
+    gasto['alertaDiasAntes'] = diasAntes;
+  });
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text('🔔 Alerta creada correctamente'),
+    ),
+  );
+} 
+
+  Widget _listaMovimientos({
+  required List<Map<String, dynamic>> lista,
+  required bool esIngreso,
+}) {
+  if (lista.isEmpty) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: const Color(0xFF151C31),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Text(
+        esIngreso
+            ? 'Todavía no tienes ingresos registrados.'
+            : 'Todavía no tienes gastos registrados.',
+        style: TextStyle(
+          color: Colors.grey.shade400,
+        ),
       ),
     );
   }
+
+  return Column(
+    children: List.generate(
+      lista.length,
+      (indice) {
+        final item = lista[indice];
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.fromLTRB(16, 10, 10, 10),
+          decoration: BoxDecoration(
+            color: const Color(0xFF151C31),
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Column(
+            children: [
+              // PARTE SUPERIOR
+              Row(
+                children: [
+                  Icon(
+                    esIngreso
+                        ? Icons.add_circle_outline
+                        : Icons.remove_circle_outline,
+                    color: const Color(0xFF00C9A7),
+                  ),
+
+                  const SizedBox(width: 12),
+
+                  Expanded(
+                    child: Text(
+                      item['nombre'],
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+
+                  Text(
+                    '\$${(item['valor'] as double).toStringAsFixed(0)}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  // ✏️ EDITAR ARRIBA A LA DERECHA
+                  IconButton(
+                    tooltip: 'Editar',
+                    onPressed: () {
+                      _editarMovimiento(
+                        esIngreso: esIngreso,
+                        indice: indice,
+                      );
+                    },
+                    icon: const Icon(
+                      Icons.edit_outlined,
+                      size: 21,
+                    ),
+                  ),
+                ],
+              ),
+
+              // BOTONES INFERIORES
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  // 🔔 ALERTA
+                  if (!esIngreso)
+                    IconButton(
+                      tooltip: 'Crear alerta',
+                      onPressed: () {
+                        _mostrarAlerta(
+                          indice: indice,
+                        );
+                      },
+                      icon: const Icon(
+                        Icons.notifications_none_outlined,
+                        size: 22,
+                      ),
+                    ),
+
+                  // 🗑️ ELIMINAR
+                  IconButton(
+                    tooltip: 'Eliminar',
+                    onPressed: () {
+                      _eliminar(
+                        esIngreso: esIngreso,
+                        indice: indice,
+                      );
+                    },
+                    icon: const Icon(
+                      Icons.delete_outline,
+                      size: 21,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    ),
+  );
 }
 
   Widget _opcion(
