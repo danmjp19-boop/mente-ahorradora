@@ -549,6 +549,91 @@ class _DineroPageState extends State<DineroPage> {
     );
   }
 
+  void _editarMovimiento({
+  required bool esIngreso,
+  required int indice,
+}) {
+  final lista = esIngreso ? ingresos : gastos;
+  final item = lista[indice];
+
+  final nombreController =
+      TextEditingController(text: item['nombre']);
+
+  final valorController = TextEditingController(
+    text: (item['valor'] as double).toStringAsFixed(0),
+  );
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text(
+          esIngreso ? 'Editar ingreso' : 'Editar gasto',
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nombreController,
+              decoration: const InputDecoration(
+                labelText: 'Nombre',
+              ),
+            ),
+            const SizedBox(height: 15),
+            TextField(
+              controller: valorController,
+              keyboardType:
+                  const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: const InputDecoration(
+                labelText: 'Valor',
+                prefixText: '\$ ',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              final nombre =
+                  nombreController.text.trim();
+
+              final valor = double.tryParse(
+                valorController.text
+                    .replaceAll('.', '')
+                    .replaceAll(',', '.'),
+              );
+
+              if (nombre.isEmpty ||
+                  valor == null ||
+                  valor <= 0) {
+                return;
+              }
+
+              setState(() {
+                item['nombre'] = nombre;
+                item['valor'] = valor;
+              });
+
+              await _guardarDatos();
+
+              if (context.mounted) {
+                Navigator.pop(context);
+              }
+            },
+            child: const Text('Guardar cambios'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
   void _eliminar({
     required bool esIngreso,
     required int indice,
@@ -1053,6 +1138,7 @@ class _DineroPageState extends State<DineroPage> {
       },
     ),
   );
+}
 }
 
   Widget _opcion(
