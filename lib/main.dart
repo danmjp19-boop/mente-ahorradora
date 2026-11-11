@@ -1078,7 +1078,7 @@ class _DineroPageState extends State<DineroPage> {
                   ),
 
                   Text(
-                    '\$${(item['valor'] as double).toStringAsFixed(0)}',
+                    '\$${NumberFormat('#,##0', 'es_CO').format(item['valor'])}',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
