@@ -491,6 +491,9 @@ class _DineroPageState extends State<DineroPage> {
               const SizedBox(height: 15),
               TextField(
                 controller: valorController,
+                inputFormatters: [
+                  FormatoMiles(),
+                ],
                 keyboardType:
                     const TextInputType.numberWithOptions(
                   decimal: true,
