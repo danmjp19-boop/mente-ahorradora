@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
+import 'package:flutter/services.dart';
 
 void main() {
   runApp(const HabitosDeRiquezaApp());
@@ -1218,4 +1220,26 @@ class _DineroPageState extends State<DineroPage> {
       ),
     ),
   );
+}
+
+class FormatoMiles extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    String numeros = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
+
+    if (numeros.isEmpty) {
+      return newValue.copyWith(text: '');
+    }
+
+    final formato = NumberFormat('#,###', 'es_CO');
+    final valor = formato.format(int.parse(numeros));
+
+    return TextEditingValue(
+      text: valor,
+      selection: TextSelection.collapsed(offset: valor.length),
+    );
+  }
 }
