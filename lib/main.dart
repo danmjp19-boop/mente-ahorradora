@@ -720,7 +720,7 @@ class _DineroPageState extends State<DineroPage> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '\$${NumberFormat('#,##0', 'es_CO').format(disponible)}'
+                      '\$${NumberFormat('#,##0', 'es_CO').format(disponible)}',
                       style: const TextStyle(
                         fontSize: 34,
                         fontWeight: FontWeight.bold,
