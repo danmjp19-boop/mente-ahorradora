@@ -1147,7 +1147,8 @@ class _DineroPageState extends State<DineroPage> {
 }
 }
 
-  Widget _opcion(
+  
+Widget _opcion(
   BuildContext context,
   IconData icono,
   String titulo,
@@ -1164,13 +1165,12 @@ class _DineroPageState extends State<DineroPage> {
           ),
         );
       } else if (titulo == 'Crear mi primer hábito') {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => const HabitosPage(),
-    ),
-  );
-}
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const HabitosPage(),
+          ),
+        );
       } else if (titulo == 'Crear una meta') {
         Navigator.push(
           context,
@@ -1226,6 +1226,7 @@ class _DineroPageState extends State<DineroPage> {
     ),
   );
 }
+
 
 
 class HabitosPage extends StatefulWidget {
