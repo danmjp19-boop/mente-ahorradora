@@ -1164,12 +1164,13 @@ class _DineroPageState extends State<DineroPage> {
           ),
         );
       } else if (titulo == 'Crear mi primer hábito') {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const CaminoPage(),
-          ),
-        );
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => const HabitosPage(),
+    ),
+  );
+}
       } else if (titulo == 'Crear una meta') {
         Navigator.push(
           context,
@@ -1224,6 +1225,221 @@ class _DineroPageState extends State<DineroPage> {
       ),
     ),
   );
+}
+
+
+class HabitosPage extends StatefulWidget {
+  const HabitosPage({super.key});
+
+  @override
+  State<HabitosPage> createState() => _HabitosPageState();
+}
+
+class _HabitosPageState extends State<HabitosPage> {
+  List<Map<String, dynamic>> habitos = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarHabitos();
+  }
+
+  Future<void> _cargarHabitos() async {
+    final prefs = await SharedPreferences.getInstance();
+    final datos = prefs.getStringList('lista_habitos') ?? [];
+
+    setState(() {
+      habitos = datos.map((item) {
+        final partes = item.split('|');
+        return {
+          'nombre': partes[0],
+          'completado': partes.length > 1 && partes[1] == '1',
+        };
+      }).toList();
+    });
+  }
+
+  Future<void> _guardarHabitos() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    await prefs.setStringList(
+      'lista_habitos',
+      habitos.map((h) =>
+        '${h['nombre']}|${h['completado'] == true ? '1' : '0'}'
+      ).toList(),
+    );
+  }
+
+  void _crearHabito() {
+    final controller = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Crear mi hábito'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'Nombre del hábito',
+            hintText: 'Ej: Ahorrar todos los días',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              final nombre = controller.text.trim();
+
+              if (nombre.isEmpty) return;
+
+              setState(() {
+                habitos.add({
+                  'nombre': nombre,
+                  'completado': false,
+                });
+              });
+
+              await _guardarHabitos();
+
+              if (dialogContext.mounted) {
+                Navigator.pop(dialogContext);
+              }
+            },
+            child: const Text('Guardar hábito'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final completados =
+        habitos.where((h) => h['completado'] == true).length;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Mis hábitos'),
+        centerTitle: true,
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _crearHabito,
+        icon: const Icon(Icons.add),
+        label: const Text('Nuevo hábito'),
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Construye buenos hábitos 🌱',
+                style: TextStyle(
+                  fontSize: 27,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Pequeñas acciones diarias construyen grandes resultados.',
+                style: TextStyle(
+                  color: Colors.grey.shade400,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 25),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color(0xFF00C9A7),
+                      Color(0xFF087F8C),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  'Hábitos completados: $completados de ${habitos.length}',
+                  style: const TextStyle(
+                    fontSize: 19,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 25),
+              const Text(
+                'Mi lista de hábitos',
+                style: TextStyle(
+                  fontSize: 21,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Expanded(
+                child: habitos.isEmpty
+                    ? Center(
+                        child: Text(
+                          'Todavía no tienes hábitos.\nPulsa “Nuevo hábito” para comenzar.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.grey.shade400,
+                            fontSize: 16,
+                          ),
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: habitos.length,
+                        itemBuilder: (context, index) {
+                          final habito = habitos[index];
+
+                          return Card(
+                            color: const Color(0xFF151C31),
+                            margin: const EdgeInsets.only(bottom: 12),
+                            child: CheckboxListTile(
+                              value: habito['completado'],
+                              activeColor: const Color(0xFF00C9A7),
+                              title: Text(
+                                habito['nombre'],
+                                style: TextStyle(
+                                  decoration:
+                                      habito['completado'] == true
+                                          ? TextDecoration.lineThrough
+                                          : null,
+                                ),
+                              ),
+                              secondary: IconButton(
+                                icon: const Icon(Icons.delete_outline),
+                                onPressed: () async {
+                                  setState(() {
+                                    habitos.removeAt(index);
+                                  });
+                                  await _guardarHabitos();
+                                },
+                              ),
+                              onChanged: (valor) async {
+                                setState(() {
+                                  habito['completado'] = valor ?? false;
+                                });
+                                await _guardarHabitos();
+                              },
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class FormatoMiles extends TextInputFormatter {
