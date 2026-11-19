@@ -640,20 +640,42 @@ class _DineroPageState extends State<DineroPage> {
   );
 }
 
-  void _eliminar({
-    required bool esIngreso,
-    required int indice,
-  }) async {
-    setState(() {
-      if (esIngreso) {
-        ingresos.removeAt(indice);
-      } else {
-        gastos.removeAt(indice);
-      }
-    });
+  Future<void> _eliminar({
+  required bool esIngreso,
+  required int indice,
+}) async {
+  final confirmar = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Confirmar eliminación'),
+      content: Text(
+        '¿Está seguro de que desea eliminar este ${esIngreso ? 'ingreso' : 'gasto'}?',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('Cancelar'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, true),
+          child: const Text('Eliminar'),
+        ),
+      ],
+    ),
+  );
 
-    await _guardarDatos();
-  }
+  if (confirmar != true) return;
+
+  setState(() {
+    if (esIngreso) {
+      ingresos.removeAt(indice);
+    } else {
+      gastos.removeAt(indice);
+    }
+  });
+
+  await _guardarDatos();
+}
 
   @override
   Widget build(BuildContext context) {
