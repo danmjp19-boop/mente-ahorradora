@@ -1049,6 +1049,14 @@ class _DineroPageState extends State<DineroPage> {
   );
 } 
 
+  Future<void> _cambiarEstadoPago(int indice) async {
+  setState(() {
+    gastos[indice]['pagado'] = !(gastos[indice]['pagado'] ?? false);
+  });
+
+  await _guardarDatos();
+}
+
   Widget _listaMovimientos({
   required List<Map<String, dynamic>> lista,
   required bool esIngreso,
