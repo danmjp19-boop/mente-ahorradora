@@ -1203,6 +1203,9 @@ class _DineroPageState extends State<DineroPage> {
                   ),
                 ],
               ),
+              }
+
+}
 
   
 Widget _opcion(
