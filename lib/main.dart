@@ -410,34 +410,44 @@ class _DineroPageState extends State<DineroPage> {
   }
 
   Future<void> _cargarDatos() async {
-    final prefs = await SharedPreferences.getInstance();
+  final prefs = await SharedPreferences.getInstance();
 
-    final ingresosGuardados =
-        prefs.getStringList('lista_ingresos') ?? [];
+  final ingresosGuardados =
+      prefs.getStringList('lista_ingresos') ?? [];
 
-    final gastosGuardados =
-        prefs.getStringList('lista_gastos') ?? [];
+  final gastosGuardados =
+      prefs.getStringList('lista_gastos') ?? [];
 
-    setState(() {
-      ingresos = ingresosGuardados.map((item) {
+  List<Map<String, dynamic>> convertirLista(List<String> datos) {
+    return datos.map((item) {
+      try {
+        if (item.trim().startsWith('{')) {
+          final mapa = Map<String, dynamic>.from(jsonDecode(item));
+          mapa['valor'] = (mapa['valor'] as num).toDouble();
+          mapa['pagado'] ??= false;
+          mapa['fechaPago'] ??= '';
+          return mapa;
+        }
+
         final partes = item.split('|');
 
         return {
           'nombre': partes[0],
           'valor': double.tryParse(partes[1]) ?? 0,
+          'pagado': false,
+          'fechaPago': '',
         };
-      }).toList();
-
-      gastos = gastosGuardados.map((item) {
-        final partes = item.split('|');
-
-        return {
-          'nombre': partes[0],
-          'valor': double.tryParse(partes[1]) ?? 0,
-        };
-      }).toList();
-    });
+      } catch (_) {
+        return <String, dynamic>{};
+      }
+    }).where((item) => item.isNotEmpty).toList();
   }
+
+  setState(() {
+    ingresos = convertirLista(ingresosGuardados);
+    gastos = convertirLista(gastosGuardados);
+  });
+}
 
   Future<void> _guardarDatos() async {
     final prefs = await SharedPreferences.getInstance();
