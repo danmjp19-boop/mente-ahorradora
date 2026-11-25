@@ -1142,10 +1142,36 @@ class _DineroPageState extends State<DineroPage> {
                 ],
               ),
 
-              // BOTONES INFERIORES
+                            // BOTONES INFERIORES
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  // PAGADO / PENDIENTE
+                  if (!esIngreso)
+                    TextButton.icon(
+                      onPressed: () {
+                        _cambiarEstadoPago(indice);
+                      },
+                      icon: Icon(
+                        (item['pagado'] ?? false)
+                            ? Icons.check_circle
+                            : Icons.pending_outlined,
+                        color: (item['pagado'] ?? false)
+                            ? Colors.green
+                            : Colors.orange,
+                      ),
+                      label: Text(
+                        (item['pagado'] ?? false)
+                            ? 'Pagado'
+                            : 'Pendiente',
+                        style: TextStyle(
+                          color: (item['pagado'] ?? false)
+                              ? Colors.green
+                              : Colors.orange,
+                        ),
+                      ),
+                    ),
+
                   // 🔔 ALERTA
                   if (!esIngreso)
                     IconButton(
@@ -1177,14 +1203,6 @@ class _DineroPageState extends State<DineroPage> {
                   ),
                 ],
               ),
-            ],
-          ),
-        );
-      },
-    ),
-  );
-}
-}
 
   
 Widget _opcion(
