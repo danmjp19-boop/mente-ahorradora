@@ -539,7 +539,9 @@ class _DineroPageState extends State<DineroPage> {
                   final nuevo = {
                     'nombre': nombre,
                     'valor': valor,
-                  };
+                    'pagado': false,
+                    'fechaPago': '',
+                 };
 
                   if (esIngreso) {
                     ingresos.add(nuevo);
