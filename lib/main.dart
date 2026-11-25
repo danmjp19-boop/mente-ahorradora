@@ -450,22 +450,18 @@ class _DineroPageState extends State<DineroPage> {
 }
 
   Future<void> _guardarDatos() async {
-    final prefs = await SharedPreferences.getInstance();
+  final prefs = await SharedPreferences.getInstance();
 
-    await prefs.setStringList(
-      'lista_ingresos',
-      ingresos
-          .map((item) => '${item['nombre']}|${item['valor']}')
-          .toList(),
-    );
+  await prefs.setStringList(
+    'lista_ingresos',
+    ingresos.map((item) => jsonEncode(item)).toList(),
+  );
 
-    await prefs.setStringList(
-      'lista_gastos',
-      gastos
-          .map((item) => '${item['nombre']}|${item['valor']}')
-          .toList(),
-    );
-  }
+  await prefs.setStringList(
+    'lista_gastos',
+    gastos.map((item) => jsonEncode(item)).toList(),
+  );
+}
 
   double _total(List<Map<String, dynamic>> lista) {
     return lista.fold(
