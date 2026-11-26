@@ -1057,33 +1057,29 @@ class _DineroPageState extends State<DineroPage> {
   await _guardarDatos();
 }
 
-  Widget _listaMovimientos({
-  required List<Map<String, dynamic>> lista,
-  required bool esIngreso,
-}) {
-  if (lista.isEmpty) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: const Color(0xFF151C31),
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Text(
-        esIngreso
-            ? 'Todavía no tienes ingresos registrados.'
-            : 'Todavía no tienes gastos registrados.',
-        style: TextStyle(
-          color: Colors.grey.shade400,
+    Widget _listaMovimientos({
+    required List<Map<String, dynamic>> lista,
+    required bool esIngreso,
+  }) {
+    if (lista.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: const Color(0xFF151C31),
+          borderRadius: BorderRadius.circular(18),
         ),
-      ),
-    );
-  }
+        child: Text(
+          esIngreso
+              ? 'Todavía no tienes ingresos registrados.'
+              : 'Todavía no tienes gastos registrados.',
+          style: TextStyle(color: Colors.grey.shade400),
+        ),
+      );
+    }
 
-  return Column(
-    children: List.generate(
-      lista.length,
-      (indice) {
+    return Column(
+      children: List.generate(lista.length, (indice) {
         final item = lista[indice];
 
         return Container(
@@ -1095,7 +1091,6 @@ class _DineroPageState extends State<DineroPage> {
           ),
           child: Column(
             children: [
-              // PARTE SUPERIOR
               Row(
                 children: [
                   Icon(
@@ -1104,9 +1099,7 @@ class _DineroPageState extends State<DineroPage> {
                         : Icons.remove_circle_outline,
                     color: const Color(0xFF00C9A7),
                   ),
-
                   const SizedBox(width: 12),
-
                   Expanded(
                     child: Text(
                       item['nombre'],
@@ -1116,7 +1109,6 @@ class _DineroPageState extends State<DineroPage> {
                       ),
                     ),
                   ),
-
                   Text(
                     '\$${NumberFormat('#,##0', 'es_CO').format(item['valor'])}',
                     style: const TextStyle(
@@ -1124,8 +1116,6 @@ class _DineroPageState extends State<DineroPage> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-
-                  // ✏️ EDITAR ARRIBA A LA DERECHA
                   IconButton(
                     tooltip: 'Editar',
                     onPressed: () {
@@ -1141,12 +1131,9 @@ class _DineroPageState extends State<DineroPage> {
                   ),
                 ],
               ),
-
-                            // BOTONES INFERIORES
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  // PAGADO / PENDIENTE
                   if (!esIngreso)
                     TextButton.icon(
                       onPressed: () {
@@ -1171,23 +1158,17 @@ class _DineroPageState extends State<DineroPage> {
                         ),
                       ),
                     ),
-
-                  // 🔔 ALERTA
                   if (!esIngreso)
                     IconButton(
                       tooltip: 'Crear alerta',
                       onPressed: () {
-                        _mostrarAlerta(
-                          indice: indice,
-                        );
+                        _mostrarAlerta(indice: indice);
                       },
                       icon: const Icon(
                         Icons.notifications_none_outlined,
                         size: 22,
                       ),
                     ),
-
-                  // 🗑️ ELIMINAR
                   IconButton(
                     tooltip: 'Eliminar',
                     onPressed: () {
@@ -1203,9 +1184,12 @@ class _DineroPageState extends State<DineroPage> {
                   ),
                 ],
               ),
-              }
-
-}
+            ],
+          ),
+        );
+      }),
+    );
+  }
 
   
 Widget _opcion(
