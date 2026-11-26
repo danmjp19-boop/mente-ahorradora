@@ -1191,7 +1191,7 @@ class _DineroPageState extends State<DineroPage> {
     );
   }
 
-  
+ } 
 Widget _opcion(
   BuildContext context,
   IconData icono,
