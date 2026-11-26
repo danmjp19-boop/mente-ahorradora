@@ -1092,7 +1092,16 @@ void _mostrarFormulario({
 
   Future<void> _cambiarEstadoPago(int indice) async {
   setState(() {
-    gastos[indice]['pagado'] = !(gastos[indice]['pagado'] ?? false);
+    final ahora = DateTime.now();
+
+    if (!(gastos[indice]['pagado'] ?? false)) {
+      gastos[indice]['pagado'] = true;
+      gastos[indice]['fechaPago'] =
+          '${ahora.day.toString().padLeft(2, '0')}/${ahora.month.toString().padLeft(2, '0')}/${ahora.year}';
+    } else {
+      gastos[indice]['pagado'] = false;
+      gastos[indice]['fechaPago'] = '';
+    }
   });
 
   await _guardarDatos();
