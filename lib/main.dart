@@ -470,99 +470,140 @@ class _DineroPageState extends State<DineroPage> {
     );
   }
 
-  void _mostrarFormulario({
-    required bool esIngreso,
-    String? nombreInicial,
-  }) {
-    final nombreController =
-        TextEditingController(text: nombreInicial ?? '');
+  
+void _mostrarFormulario({
+  required bool esIngreso,
+  String? nombreInicial,
+}) {
+  final nombreController =
+      TextEditingController(text: nombreInicial ?? '');
 
-    final valorController = TextEditingController();
+  final valorController = TextEditingController();
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(
-            esIngreso ? 'Nuevo ingreso' : 'Nuevo gasto',
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nombreController,
-                decoration: const InputDecoration(
-                  labelText: 'Nombre',
-                  hintText: 'Ej: Sueldo',
+  DateTime? fechaPagoSeleccionada;
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, actualizarDialogo) {
+          return AlertDialog(
+            title: Text(
+              esIngreso ? 'Nuevo ingreso' : 'Nuevo gasto',
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nombreController,
+                  decoration: const InputDecoration(
+                    labelText: 'Nombre',
+                    hintText: 'Ej: Sueldo',
+                  ),
                 ),
-              ),
-              const SizedBox(height: 15),
-              TextField(
-                controller: valorController,
-                inputFormatters: [
-                  FormatoMiles(),
+                const SizedBox(height: 15),
+                TextField(
+                  controller: valorController,
+                  inputFormatters: [
+                    FormatoMiles(),
+                  ],
+                  keyboardType:
+                      const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: const InputDecoration(
+                    labelText: 'Valor',
+                    prefixText: '\$ ',
+                  ),
+                ),
+
+                if (!esIngreso) ...[
+                  const SizedBox(height: 15),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.calendar_month),
+                    title: const Text('Fecha de pago'),
+                    subtitle: Text(
+                      fechaPagoSeleccionada == null
+                          ? 'Seleccionar fecha'
+                          : '${fechaPagoSeleccionada!.day.toString().padLeft(2, '0')}/${fechaPagoSeleccionada!.month.toString().padLeft(2, '0')}/${fechaPagoSeleccionada!.year}',
+                    ),
+                    trailing: const Icon(Icons.edit_calendar),
+                    onTap: () async {
+                      final fecha = await showDatePicker(
+                        context: context,
+                        initialDate:
+                            fechaPagoSeleccionada ?? DateTime.now(),
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2100),
+                      );
+
+                      if (fecha != null) {
+                        actualizarDialogo(() {
+                          fechaPagoSeleccionada = fecha;
+                        });
+                      }
+                    },
+                  ),
                 ],
-                keyboardType:
-                    const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                decoration: const InputDecoration(
-                  labelText: 'Valor',
-                  prefixText: '\$ ',
-                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancelar'),
+              ),
+              FilledButton(
+                onPressed: () async {
+                  final nombre =
+                      nombreController.text.trim();
+
+                  final valor = double.tryParse(
+                    valorController.text
+                        .replaceAll('.', '')
+                        .replaceAll(',', '.'),
+                  );
+
+                  if (nombre.isEmpty ||
+                      valor == null ||
+                      valor <= 0) {
+                    return;
+                  }
+
+                  setState(() {
+                    final nuevo = {
+                      'nombre': nombre,
+                      'valor': valor,
+                      'pagado': false,
+                      'fechaPago': esIngreso
+                          ? ''
+                          : fechaPagoSeleccionada == null
+                              ? ''
+                              : '${fechaPagoSeleccionada!.day.toString().padLeft(2, '0')}/${fechaPagoSeleccionada!.month.toString().padLeft(2, '0')}/${fechaPagoSeleccionada!.year}',
+                    };
+
+                    if (esIngreso) {
+                      ingresos.add(nuevo);
+                    } else {
+                      gastos.add(nuevo);
+                    }
+                  });
+
+                  await _guardarDatos();
+
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                  }
+                },
+                child: const Text('Guardar'),
               ),
             ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
-            ),
-            FilledButton(
-              onPressed: () async {
-                final nombre =
-                    nombreController.text.trim();
-
-                final valor = double.tryParse(
-                  valorController.text
-                      .replaceAll('.', '')
-                      .replaceAll(',', '.'),
-                );
-
-                if (nombre.isEmpty ||
-                    valor == null ||
-                    valor <= 0) {
-                  return;
-                }
-
-                setState(() {
-                  final nuevo = {
-                    'nombre': nombre,
-                    'valor': valor,
-                    'pagado': false,
-                    'fechaPago': '',
-                 };
-
-                  if (esIngreso) {
-                    ingresos.add(nuevo);
-                  } else {
-                    gastos.add(nuevo);
-                  }
-                });
-
-                await _guardarDatos();
-
-                if (context.mounted) {
-                  Navigator.pop(context);
-                }
-              },
-              child: const Text('Guardar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+          );
+        },
+      );
+    },
+  );
+}
 
   void _editarMovimiento({
   required bool esIngreso,
