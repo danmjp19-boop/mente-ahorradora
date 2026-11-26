@@ -1189,9 +1189,7 @@ void _mostrarFormulario({
                             : Colors.orange,
                       ),
                       label: Text(
-                        (item['pagado'] ?? false)
-                            ? 'Pagado'
-                            : 'Pendiente',
+  '${(item['pagado'] ?? false) ? 'Pagado' : 'Pendiente'}${item['fechaPago'] != null && item['fechaPago'].toString().isNotEmpty ? ' • ${item['fechaPago']}' : ''}',
                         style: TextStyle(
                           color: (item['pagado'] ?? false)
                               ? Colors.green
