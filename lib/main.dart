@@ -1281,10 +1281,11 @@ void _mostrarFormulario({
                             : Colors.orange,
                       ),
                       
+
 label: Text(
   (item['pagado'] ?? false)
-      ? 'Pagado${item['fechaPago'] != null && item['fechaPago'].toString().isNotEmpty ? ' • ${item['fechaPago']}' : ''}${item['fechaVencimiento'] != null && item['fechaVencimiento'].toString().isNotEmpty ? '\nPróximo pago: ${item['fechaVencimiento']}' : ''}'
-      : 'Pendiente${(item['fechaVencimiento'] ?? item['fechaPago'] ?? '').toString().isNotEmpty ? ' • ${item['fechaVencimiento'] ?? item['fechaPago']}' : ''}',
+      ? 'Pagado${item['fechaPago'] != null && item['fechaPago'].toString().isNotEmpty ? ' • ${item['fechaPago']}' : ''}${item['fechaVencimiento'] != null && item['fechaVencimiento'].toString().isNotEmpty ? '\nPróximo pago: ${item['fechaVencimiento']} • ${(() { final p = item['fechaVencimiento'].toString().split('/'); if (p.length != 3) return ''; final f = DateTime(int.parse(p[2]), int.parse(p[1]), int.parse(p[0])); final h = DateTime.now(); final hoy = DateTime(h.year, h.month, h.day); final d = f.difference(hoy).inDays; return d > 0 ? '$d días' : d == 0 ? 'Hoy' : '$d días'; })()}' : ''
+      : 'Pendiente${(item['fechaVencimiento'] ?? item['fechaPago'] ?? '').toString().isNotEmpty ? ' • ${item['fechaVencimiento'] ?? item['fechaPago']} • ${(() { final r = (item['fechaVencimiento'] ?? item['fechaPago']).toString(); final p = r.split('/'); if (p.length != 3) return ''; final f = DateTime(int.parse(p[2]), int.parse(p[1]), int.parse(p[0])); final h = DateTime.now(); final hoy = DateTime(h.year, h.month, h.day); final d = f.difference(hoy).inDays; return d > 0 ? '$d días' : d == 0 ? 'Hoy' : '$d días'; })()}' : '',
   style: TextStyle(
     color: (item['pagado'] ?? false)
         ? Colors.green
