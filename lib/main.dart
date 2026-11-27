@@ -1190,6 +1190,25 @@ void _mostrarFormulario({
   await _guardarDatos();
 }
 
+ String _calcularDias(String fecha) {
+  final partes = fecha.split('/');
+  if (partes.length != 3) return '';
+
+  final f = DateTime(
+    int.parse(partes[2]),
+    int.parse(partes[1]),
+    int.parse(partes[0]),
+  );
+
+  final ahora = DateTime.now();
+  final hoy = DateTime(ahora.year, ahora.month, ahora.day);
+  final diferencia = f.difference(hoy).inDays;
+
+  if (diferencia > 0) return '$diferencia días';
+  if (diferencia == 0) return 'Hoy';
+  return '$diferencia días';
+} 
+
     Widget _listaMovimientos({
     required List<Map<String, dynamic>> lista,
     required bool esIngreso,
