@@ -1280,14 +1280,18 @@ void _mostrarFormulario({
                             ? Colors.green
                             : Colors.orange,
                       ),
-                      label: Text(
-  '${(item['pagado'] ?? false) ? 'Pagado' : 'Pendiente'}${item['fechaPago'] != null && item['fechaPago'].toString().isNotEmpty ? ' • ${item['fechaPago']}' : ''}',
-                        style: TextStyle(
-                          color: (item['pagado'] ?? false)
-                              ? Colors.green
-                              : Colors.orange,
-                        ),
-                      ),
+                      
+label: Text(
+  (item['pagado'] ?? false)
+      ? 'Pagado${item['fechaPago'] != null && item['fechaPago'].toString().isNotEmpty ? ' • ${item['fechaPago']}' : ''}${item['fechaVencimiento'] != null && item['fechaVencimiento'].toString().isNotEmpty ? '\nPróximo pago: ${item['fechaVencimiento']}' : ''}'
+      : 'Pendiente${(item['fechaVencimiento'] ?? item['fechaPago'] ?? '').toString().isNotEmpty ? ' • ${item['fechaVencimiento'] ?? item['fechaPago']}' : ''}',
+  style: TextStyle(
+    color: (item['pagado'] ?? false)
+        ? Colors.green
+        : Colors.orange,
+  ),
+),
+
                     ),
                   if (!esIngreso)
                     IconButton(
