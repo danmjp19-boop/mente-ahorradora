@@ -605,90 +605,173 @@ void _mostrarFormulario({
   );
 }
 
+  
   void _editarMovimiento({
-  required bool esIngreso,
-  required int indice,
-}) {
-  final lista = esIngreso ? ingresos : gastos;
-  final item = lista[indice];
+    required bool esIngreso,
+    required int indice,
+  }) {
+    final lista = esIngreso ? ingresos : gastos;
+    final item = lista[indice];
 
-  final nombreController =
-      TextEditingController(text: item['nombre']);
+    final nombreController =
+        TextEditingController(text: item['nombre']);
 
-  final valorController = TextEditingController(
-    text: (item['valor'] as double).toStringAsFixed(0),
-  );
+    final valorController = TextEditingController(
+      text: (item['valor'] as double).toStringAsFixed(0),
+    );
 
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: Text(
-          esIngreso ? 'Editar ingreso' : 'Editar gasto',
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nombreController,
-              decoration: const InputDecoration(
-                labelText: 'Nombre',
+    DateTime? fechaSeleccionada;
+
+    if (!esIngreso) {
+      final fechaGuardada =
+          (item['fechaVencimiento'] ?? '').toString();
+
+      if (fechaGuardada.isNotEmpty) {
+        final partes = fechaGuardada.split('/');
+        if (partes.length == 3) {
+          fechaSeleccionada = DateTime(
+            int.parse(partes[2]),
+            int.parse(partes[1]),
+            int.parse(partes[0]),
+          );
+        }
+      } else if (!(item['pagado'] ?? false)) {
+        final fechaAnterior =
+            (item['fechaPago'] ?? '').toString();
+
+        if (fechaAnterior.isNotEmpty) {
+          final partes = fechaAnterior.split('/');
+          if (partes.length == 3) {
+            fechaSeleccionada = DateTime(
+              int.parse(partes[2]),
+              int.parse(partes[1]),
+              int.parse(partes[0]),
+            );
+          }
+        }
+      }
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, actualizarDialogo) {
+            return AlertDialog(
+              title: Text(
+                esIngreso ? 'Editar ingreso' : 'Editar gasto',
               ),
-            ),
-            const SizedBox(height: 15),
-            TextField(
-              controller: valorController,
-              keyboardType:
-                  const TextInputType.numberWithOptions(
-                decimal: true,
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: nombreController,
+                      decoration: const InputDecoration(
+                        labelText: 'Nombre',
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    TextField(
+                      controller: valorController,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      decoration: const InputDecoration(
+                        labelText: 'Valor',
+                        prefixText: '\$ ',
+                      ),
+                    ),
+                    if (!esIngreso) ...[
+                      const SizedBox(height: 15),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text('Fecha programada de pago'),
+                        subtitle: Text(
+                          fechaSeleccionada == null
+                              ? 'Sin fecha'
+                              : '${fechaSeleccionada!.day.toString().padLeft(2, '0')}/${fechaSeleccionada!.month.toString().padLeft(2, '0')}/${fechaSeleccionada!.year}',
+                        ),
+                        trailing: const Icon(Icons.calendar_month),
+                        onTap: () async {
+                          final fecha = await showDatePicker(
+                            context: context,
+                            initialDate:
+                                fechaSeleccionada ?? DateTime.now(),
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime(2100),
+                          );
+
+                          if (fecha != null) {
+                            actualizarDialogo(() {
+                              fechaSeleccionada = fecha;
+                            });
+                          }
+                        },
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          actualizarDialogo(() {
+                            fechaSeleccionada = null;
+                          });
+                        },
+                        child: const Text('Quitar fecha'),
+                      ),
+                    ],
+                  ],
+                ),
               ),
-              decoration: const InputDecoration(
-                labelText: 'Valor',
-                prefixText: '\$ ',
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              final nombre =
-                  nombreController.text.trim();
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancelar'),
+                ),
+                FilledButton(
+                  onPressed: () async {
+                    final nombre =
+                        nombreController.text.trim();
 
-              final valor = double.tryParse(
-                valorController.text
-                    .replaceAll('.', '')
-                    .replaceAll(',', '.'),
-              );
+                    final valor = double.tryParse(
+                      valorController.text
+                          .replaceAll('.', '')
+                          .replaceAll(',', '.'),
+                    );
 
-              if (nombre.isEmpty ||
-                  valor == null ||
-                  valor <= 0) {
-                return;
-              }
+                    if (nombre.isEmpty ||
+                        valor == null ||
+                        valor <= 0) {
+                      return;
+                    }
 
-              setState(() {
-                item['nombre'] = nombre;
-                item['valor'] = valor;
-              });
+                    setState(() {
+                      item['nombre'] = nombre;
+                      item['valor'] = valor;
 
-              await _guardarDatos();
+                      if (!esIngreso) {
+                        item['fechaVencimiento'] =
+                            fechaSeleccionada == null
+                                ? ''
+                                : '${fechaSeleccionada!.day.toString().padLeft(2, '0')}/${fechaSeleccionada!.month.toString().padLeft(2, '0')}/${fechaSeleccionada!.year}';
+                      }
+                    });
 
-              if (context.mounted) {
-                Navigator.pop(context);
-              }
-            },
-            child: const Text('Guardar cambios'),
-          ),
-        ],
-      );
-    },
-  );
-}
+                    await _guardarDatos();
+
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: const Text('Guardar cambios'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
 
   Future<void> _eliminar({
   required bool esIngreso,
