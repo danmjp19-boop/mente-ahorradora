@@ -1308,7 +1308,11 @@ label: Text(
   style: TextStyle(
     color: (item['pagado'] ?? false)
         ? Colors.green
-        : Colors.orange,
+        : _calcularDias(item['fechaVencimiento'] ?? item['fechaPago']).toString().toLowerCase().contains('hoy')
+            ? Colors.amber
+            : _calcularDias(item['fechaVencimiento'] ?? item['fechaPago']).toString().trim().startsWith('-')
+                ? Colors.red
+                : Colors.green,
   ),
 ),
 
