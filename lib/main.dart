@@ -381,6 +381,7 @@ class DineroPage extends StatefulWidget {
 class _DineroPageState extends State<DineroPage> {
   List<Map<String, dynamic>> ingresos = [];
   List<Map<String, dynamic>> gastos = [];
+  String filtroGastos = 'todos';
 
   final List<String> ingresosBase = [
     'Sueldo',
@@ -820,6 +821,10 @@ void _mostrarFormulario({
     final totalIngresos = _total(ingresos);
     final totalGastos = _total(gastos);
     final disponible = totalIngresos - totalGastos;
+
+    final pendientes = gastos.where((item) => !(item['pagado'] ?? false)).length;
+    final pagados = gastos.where((item) => (item['pagado'] ?? false)).length;
+    final totalMovimientosGastos = gastos.length;
 
     return Scaffold(
       appBar: AppBar(
