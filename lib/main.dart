@@ -572,15 +572,20 @@ void _mostrarFormulario({
 
                   setState(() {
                     final nuevo = {
-                      'nombre': nombre,
-                      'valor': valor,
-                      'pagado': false,
-                      'fechaPago': esIngreso
-                          ? ''
-                          : fechaPagoSeleccionada == null
-                              ? ''
-                              : '${fechaPagoSeleccionada!.day.toString().padLeft(2, '0')}/${fechaPagoSeleccionada!.month.toString().padLeft(2, '0')}/${fechaPagoSeleccionada!.year}',
-                    };
+  'nombre': nombre,
+  'valor': valor,
+  'pagado': false,
+  'fechaPago': esIngreso
+      ? ''
+      : fechaPagoSeleccionada == null
+          ? ''
+          : '${fechaPagoSeleccionada!.day.toString().padLeft(2, '0')}/${fechaPagoSeleccionada!.month.toString().padLeft(2, '0')}/${fechaPagoSeleccionada!.year}',
+  'fechaVencimiento': esIngreso
+      ? ''
+      : fechaPagoSeleccionada == null
+          ? ''
+          : '${fechaPagoSeleccionada!.day.toString().padLeft(2, '0')}/${fechaPagoSeleccionada!.month.toString().padLeft(2, '0')}/${fechaPagoSeleccionada!.year}',
+};
 
                     if (esIngreso) {
                       ingresos.add(nuevo);
