@@ -1301,9 +1301,10 @@ void _mostrarFormulario({
                       ),
                       
 
+
 label: Text(
   (item['pagado'] ?? false)
-      ? 'Pagado${(item['fechaPago'] ?? '').toString().isNotEmpty ? ' • ${item['fechaPago']}' : ''}${(item['fechaVencimiento'] ?? '').toString().isNotEmpty ? '\nVencía: ${item['fechaVencimiento']}' : ''}'
+      ? 'Pagado${(item['fechaPago'] ?? '').toString().isNotEmpty ? ' • ${item['fechaPago']}' : ''}${(item['fechaVencimiento'] ?? '').toString().isNotEmpty ? '\nVencía: ${item['fechaVencimiento']} • ${_calcularDias(item['fechaVencimiento'])}' : ''}'
       : 'Pendiente${(item['fechaVencimiento'] ?? item['fechaPago'] ?? '').toString().isNotEmpty ? ' • ${item['fechaVencimiento'] ?? item['fechaPago']} • ${_calcularDias(item['fechaVencimiento'] ?? item['fechaPago'])}' : ''}',
   style: TextStyle(
     color: (item['pagado'] ?? false)
@@ -1317,6 +1318,7 @@ label: Text(
                     : Colors.green,
   ),
 ),
+
                       
 
                     ),
